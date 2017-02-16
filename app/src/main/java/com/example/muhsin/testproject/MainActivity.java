@@ -1,13 +1,19 @@
 package com.example.muhsin.testproject;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.icu.util.Output;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -22,7 +28,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private EditText editTextUsername;
     private EditText editTextPassword;
     private Button buttonLogin;
-    public static final String ROOT_URL = "http://192.168.1.8/";
+    public String first="";
+    public static final String idvalue = "idno";
+    public static final String MyPREFERENCES = "MyPrefs" ;
+
+    public static final String ROOT_URL = "http://192.168.43.5/";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,9 +43,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         buttonLogin= (Button) findViewById(R.id.buttonLogin);
 
         buttonLogin.setOnClickListener(this);
+
     }
     private void LoginUser(){
-        RestAdapter adapter = new RestAdapter.Builder()
+        final RestAdapter adapter = new RestAdapter.Builder()
                 .setEndpoint(ROOT_URL) //Setting the Root URL
                 .build(); //Finally building the adapter
 
@@ -68,6 +79,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 //Reading the output in the string
                 output = reader.readLine();
+                try{
+                    JSONObject jo=new JSONObject(output);
+                    //Log.e("Test",jo.toString());
+                    JSONArray ja = jo.getJSONArray("result");
+                    for (int i=0;i<ja.length();i++){
+
+                        JSONObject jobj = ja.getJSONObject(i);
+                         //idd =jobj.getInt("id");
+                            first = jobj.getString("id").toString();
+                         output =jobj.getString("name");
+
+                        }
+
+                    }
+                catch (JSONException j){
+                    j.printStackTrace();
+                }
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -75,15 +103,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             //Displaying the output as a toast
             //Toast.makeText(MainActivity.this, output, Toast.LENGTH_LONG).show();
-            if (output.equals("success"))
+           if (output.equals(editTextUsername.getText().toString()))
             {
+                //Intent i = new Intent(getApplicationContext(), Category.class);
+               //startActivity(i);
+                //Toast.makeText(MainActivity.this, first, Toast.LENGTH_LONG).show();
+                //Toast.makeText(MainActivity.this, first , Toast.LENGTH_LONG).show();
+                SharedPreferences pref = getApplicationContext().getSharedPreferences(MyPREFERENCES, 0); // 0 - for private mode
+                SharedPreferences.Editor editor = pref.edit();
+                editor.putString("idvalue",first);
+                editor.commit();
                 Intent i = new Intent(getApplicationContext(), Category.class);
                 startActivity(i);
-                Toast.makeText(MainActivity.this, "aaaa", Toast.LENGTH_LONG).show();
+
             }
             else
             {
                 Toast.makeText(MainActivity.this, output , Toast.LENGTH_LONG).show();
+
             }
         }
 
